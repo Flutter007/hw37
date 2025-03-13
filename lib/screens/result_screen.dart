@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:hw37/models/country_info_list.dart';
+import '../widgets/list_tile_custom.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key});
@@ -12,68 +13,55 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  var countyController = TextEditingController();
+  var countryController = TextEditingController();
   String? countryName;
-  List<CountyInfoList> countryInfo = [];
+  List<CountryInfoList> countryInfo = [];
+  Widget? errorText;
 
   @override
   void initState() {
     super.initState();
-    getCountryInfo();
   }
 
   Future<void> getCountryInfo() async {
-    final url = Uri.parse(
-      countryName != null
-          ? 'https://restcountries.com/v3.1/name/$countryName'
-          : 'https://restcountries.com/v3.1/name/kg',
-    );
+    final url = Uri.parse('https://restcountries.com/v3.1/name/$countryName');
     final response = await http.get(url);
-
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = jsonDecode(response.body);
       setState(() {
-        countryInfo = jsonData.map((e) => CountyInfoList.fromJson(e)).toList();
+        countryInfo = jsonData.map((e) => CountryInfoList.fromJson(e)).toList();
+        errorText = null;
       });
     }
     if (response.statusCode == 404 || response.statusCode == 400) {
-      return;
+      setState(() {
+        errorText = Text(
+          'No country found!',
+          style: GoogleFonts.alef(
+            fontSize: 20,
+            color: Theme.of(context).textTheme.bodyMedium!.color,
+          ),
+        );
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = Theme.of(context).textTheme.titleMedium!;
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-
-            itemBuilder:
-                (ctx, index) => Row(
-                  children: [
-                    Column(
-                      children: [
-                        Text(countryInfo[index].population.toString()),
-                        Text(
-                          ('${countryInfo[index].area / 1000000}).toStringAsFixed(2)}'),
-                        ),
-                        Text(countryInfo[index].region),
-                      ],
-                    ),
-                  ],
-                ),
-
-            itemCount: countryInfo.length,
-          ),
-        ),
         Container(
           padding: EdgeInsets.all(10),
           child: TextField(
-            controller: countyController,
+            onTap:
+                () => setState(() {
+                  countryController.text = '';
+                }),
+            controller: countryController,
             decoration: InputDecoration(
               label: Text("Enter your country!"),
               border: OutlineInputBorder(),
@@ -83,7 +71,7 @@ class _ResultScreenState extends State<ResultScreen> {
         TextButton(
           onPressed: () {
             setState(() {
-              countryName = countyController.text.trim();
+              countryName = countryController.text;
             });
             getCountryInfo();
           },
@@ -92,10 +80,51 @@ class _ResultScreenState extends State<ResultScreen> {
             style: GoogleFonts.alef(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: themeColor.color,
+              color: theme.colorScheme.primary,
             ),
           ),
         ),
+        errorText == null
+            ? Expanded(
+              child: ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.all(10),
+
+                itemBuilder:
+                    (ctx, index) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListTileCustom(
+                          title: 'Country',
+
+                          subtitle: countryName!,
+                        ),
+                        ListTileCustom(
+                          title: 'Capital',
+                          subtitle: countryInfo[index].capital[0],
+                        ),
+
+                        ListTileCustom(
+                          title: 'Population',
+                          subtitle:
+                              '${(countryInfo[index].population / 1000000).toStringAsFixed(2)} mln',
+                        ),
+
+                        ListTileCustom(
+                          title: 'Area',
+                          subtitle: '${countryInfo[index].area.floor()} km2',
+                        ),
+
+                        ListTileCustom(
+                          title: 'Region',
+                          subtitle: countryInfo[index].region,
+                        ),
+                      ],
+                    ),
+                itemCount: countryInfo.length,
+              ),
+            )
+            : Center(child: errorText),
       ],
     );
   }

@@ -15,6 +15,7 @@ class _Hw37State extends State<Hw37> {
     final themeColor = Theme.of(context).textTheme.titleMedium!;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(
           'Find Country ! ',
           style: GoogleFonts.alef(color: themeColor.color, fontSize: 26),
