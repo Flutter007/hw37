@@ -51,7 +51,6 @@ class _ResultScreenState extends State<ResultScreen> {
     final theme = Theme.of(context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
@@ -68,7 +67,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ),
         ),
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             setState(() {
               countryName = countryController.text;
@@ -87,16 +86,14 @@ class _ResultScreenState extends State<ResultScreen> {
         errorText == null
             ? Expanded(
               child: ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
+                //phisics: NeverScrollableScrollPhysics() был использован,но при определенных запросах(например,Китай или Корея)приходит информация о нескольких странах сразу
                 padding: EdgeInsets.all(10),
-
                 itemBuilder:
                     (ctx, index) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ListTileCustom(
                           title: 'Country',
-
                           subtitle: countryName!,
                         ),
                         ListTileCustom(
@@ -107,12 +104,12 @@ class _ResultScreenState extends State<ResultScreen> {
                         ListTileCustom(
                           title: 'Population',
                           subtitle:
-                              '${(countryInfo[index].population / 1000000).toStringAsFixed(2)} mln',
+                              '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
                         ),
 
                         ListTileCustom(
                           title: 'Area',
-                          subtitle: '${countryInfo[index].area.floor()} km2',
+                          subtitle: '${countryInfo[index].area.round()} km2',
                         ),
 
                         ListTileCustom(
