@@ -86,7 +86,7 @@ class _ResultScreenState extends State<ResultScreen> {
         errorText == null
             ? Expanded(
               child: ListView.builder(
-                //phisics: NeverScrollableScrollPhysics() был использован,но при определенных запросах(например,Китай или Корея)приходит информация о нескольких странах сразу
+                //physics: NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.all(10),
                 itemBuilder:
                     (ctx, index) => Column(
