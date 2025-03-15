@@ -15,6 +15,7 @@ class _ResultScreenState extends State<ResultScreen> {
   var countryController = TextEditingController();
   String? countryName;
   List<CountryInfoList> countryInfo = [];
+  String? wrongEntry;
   bool isFetching = false;
   String? errorTxt;
 
@@ -37,7 +38,7 @@ class _ResultScreenState extends State<ResultScreen> {
         isFetching = false;
         errorTxt = error.toString();
       });
-    }
+    } finally {}
   }
 
   @override
@@ -46,8 +47,6 @@ class _ResultScreenState extends State<ResultScreen> {
     Widget content;
     if (isFetching) {
       content = Center(child: CircularProgressIndicator());
-    } else if (errorTxt != null) {
-      content = Center(child: Text(errorTxt!, textAlign: TextAlign.center));
     } else {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -58,6 +57,7 @@ class _ResultScreenState extends State<ResultScreen> {
               onTap:
                   () => setState(() {
                     countryController.text = '';
+                    errorTxt = null;
                   }),
               controller: countryController,
               decoration: InputDecoration(
@@ -83,43 +83,61 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
             ),
           ),
+          SizedBox(height: 20),
+          errorTxt == null
+              ? Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.all(10),
+                  itemBuilder:
+                      (ctx, index) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListTileCustom(
+                            title: 'Country',
+                            subtitle: countryInfo[index].name,
+                          ),
+                          ListTileCustom(
+                            title: 'Capital',
+                            subtitle: countryInfo[index].capital[0],
+                          ),
 
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(10),
-              itemBuilder:
-                  (ctx, index) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ListTileCustom(
-                        title: 'Country',
-                        subtitle: countryInfo[index].name,
-                      ),
-                      ListTileCustom(
-                        title: 'Capital',
-                        subtitle: countryInfo[index].capital[0],
-                      ),
+                          ListTileCustom(
+                            title: 'Population',
+                            subtitle:
+                                '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
+                          ),
 
-                      ListTileCustom(
-                        title: 'Population',
-                        subtitle:
-                            '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
-                      ),
+                          ListTileCustom(
+                            title: 'Area',
+                            subtitle: '${countryInfo[index].area.round()} km2',
+                          ),
 
-                      ListTileCustom(
-                        title: 'Area',
-                        subtitle: '${countryInfo[index].area.round()} km2',
+                          ListTileCustom(
+                            title: 'Region',
+                            subtitle: countryInfo[index].region,
+                          ),
+                        ],
                       ),
-
-                      ListTileCustom(
-                        title: 'Region',
-                        subtitle: countryInfo[index].region,
+                  itemCount: countryInfo.length,
+                ),
+              )
+              : Center(
+                child: Row(
+                  children: [
+                    Icon(Icons.error, size: 30, color: theme.colorScheme.error),
+                    Expanded(
+                      child: Text(
+                        errorTxt!,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ],
-                  ),
-              itemCount: countryInfo.length,
-            ),
-          ),
+                    ),
+                  ],
+                ),
+              ),
         ],
       );
     }
