@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
+import 'package:hw37/helpers/request.dart';
 import 'package:hw37/models/country_info_list.dart';
 import '../widgets/list_tile_custom.dart';
 
@@ -16,7 +15,8 @@ class _ResultScreenState extends State<ResultScreen> {
   var countryController = TextEditingController();
   String? countryName;
   List<CountryInfoList> countryInfo = [];
-  Widget? errorText;
+  bool isFetching = false;
+  String? errorTxt;
 
   @override
   void initState() {
@@ -24,24 +24,18 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> getCountryInfo() async {
-    final url = Uri.parse('https://restcountries.com/v3.1/name/$countryName');
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonData = jsonDecode(response.body);
+    try {
+      final List<dynamic> jsonData = await request(
+        'https://restcountries.com/v3.1/name/$countryName',
+      );
       setState(() {
         countryInfo = jsonData.map((e) => CountryInfoList.fromJson(e)).toList();
-        errorText = null;
+        isFetching = false;
       });
-    }
-    if (response.statusCode == 404 || response.statusCode == 400) {
+    } catch (error) {
       setState(() {
-        errorText = Text(
-          'No country found!',
-          style: GoogleFonts.alef(
-            fontSize: 20,
-            color: Theme.of(context).textTheme.bodyMedium!.color,
-          ),
-        );
+        isFetching = false;
+        errorTxt = error.toString();
       });
     }
   }
@@ -49,80 +43,86 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(10),
-          child: TextField(
-            onTap:
-                () => setState(() {
-                  countryController.text = '';
-                }),
-            controller: countryController,
-            decoration: InputDecoration(
-              label: Text("Enter your country!"),
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            setState(() {
-              countryName = countryController.text;
-            });
-            getCountryInfo();
-          },
-          child: Text(
-            "Find",
-            style: GoogleFonts.alef(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ),
-        errorText == null
-            ? Expanded(
-              child: ListView.builder(
-                //physics: NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.all(10),
-                itemBuilder:
-                    (ctx, index) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTileCustom(
-                          title: 'Country',
-                          subtitle: countryName!,
-                        ),
-                        ListTileCustom(
-                          title: 'Capital',
-                          subtitle: countryInfo[index].capital[0],
-                        ),
-
-                        ListTileCustom(
-                          title: 'Population',
-                          subtitle:
-                              '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
-                        ),
-
-                        ListTileCustom(
-                          title: 'Area',
-                          subtitle: '${countryInfo[index].area.round()} km2',
-                        ),
-
-                        ListTileCustom(
-                          title: 'Region',
-                          subtitle: countryInfo[index].region,
-                        ),
-                      ],
-                    ),
-                itemCount: countryInfo.length,
+    Widget content;
+    if (isFetching) {
+      content = Center(child: CircularProgressIndicator());
+    } else if (errorTxt != null) {
+      content = Center(child: Text(errorTxt!, textAlign: TextAlign.center));
+    } else {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(10),
+            child: TextField(
+              onTap:
+                  () => setState(() {
+                    countryController.text = '';
+                  }),
+              controller: countryController,
+              decoration: InputDecoration(
+                label: Text("Enter your country!"),
+                border: OutlineInputBorder(),
               ),
-            )
-            : Center(child: errorText),
-      ],
-    );
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                countryName = countryController.text;
+                isFetching = true;
+              });
+              getCountryInfo();
+            },
+            child: Text(
+              "Find",
+              style: GoogleFonts.alef(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.all(10),
+              itemBuilder:
+                  (ctx, index) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTileCustom(
+                        title: 'Country',
+                        subtitle: countryInfo[index].name,
+                      ),
+                      ListTileCustom(
+                        title: 'Capital',
+                        subtitle: countryInfo[index].capital[0],
+                      ),
+
+                      ListTileCustom(
+                        title: 'Population',
+                        subtitle:
+                            '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
+                      ),
+
+                      ListTileCustom(
+                        title: 'Area',
+                        subtitle: '${countryInfo[index].area.round()} km2',
+                      ),
+
+                      ListTileCustom(
+                        title: 'Region',
+                        subtitle: countryInfo[index].region,
+                      ),
+                    ],
+                  ),
+              itemCount: countryInfo.length,
+            ),
+          ),
+        ],
+      );
+    }
+    return content;
   }
 }
