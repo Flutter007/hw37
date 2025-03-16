@@ -4,6 +4,7 @@ class CountryInfoList {
   final String region;
   final double area;
   final double population;
+  final List<String> borders;
 
   CountryInfoList({
     required this.name,
@@ -11,6 +12,7 @@ class CountryInfoList {
     required this.region,
     required this.area,
     required this.population,
+    required this.borders,
   });
   factory CountryInfoList.fromJson(Map<String, dynamic> json) {
     return CountryInfoList(
@@ -19,6 +21,7 @@ class CountryInfoList {
       region: json['region'],
       area: json['area'].toDouble(),
       population: json['population'].toDouble(),
+      borders: List<String>.from(json['borders']),
     );
   }
 }

@@ -26,11 +26,25 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> getCountryInfo() async {
     try {
-      final List<dynamic> jsonData = await request(
+      final List<dynamic> countiesData = await request(
         'https://restcountries.com/v3.1/name/$countryName',
       );
+      final borders =
+          countiesData.expand((country) => country['borders']).toList();
+
+      final bordersFutures =
+          borders.map((border) {
+            return request('https://restcountries.com/v3.1/alpha/$border');
+          }).toList();
+
+      final bordersData = await Future.wait(bordersFutures);
+
+      countiesData[0]['borders'] =
+          bordersData.map((border) => border[0]['name']['common']).toList();
+
       setState(() {
-        countryInfo = jsonData.map((e) => CountryInfoList.fromJson(e)).toList();
+        countryInfo =
+            countiesData.map((e) => CountryInfoList.fromJson(e)).toList();
         isFetching = false;
       });
     } catch (error) {
@@ -38,7 +52,7 @@ class _ResultScreenState extends State<ResultScreen> {
         isFetching = false;
         errorTxt = error.toString();
       });
-    } finally {}
+    }
   }
 
   @override
@@ -54,10 +68,15 @@ class _ResultScreenState extends State<ResultScreen> {
           Container(
             padding: EdgeInsets.all(10),
             child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  errorTxt = null;
+                  countryInfo = [];
+                });
+              },
               onTap:
                   () => setState(() {
                     countryController.text = '';
-                    errorTxt = null;
                   }),
               controller: countryController,
               decoration: InputDecoration(
@@ -93,28 +112,32 @@ class _ResultScreenState extends State<ResultScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ListTileCustom(
-                            title: 'Country',
+                            title: 'Country: ',
                             subtitle: countryInfo[index].name,
                           ),
                           ListTileCustom(
-                            title: 'Capital',
+                            title: 'Capital :',
                             subtitle: countryInfo[index].capital[0],
                           ),
 
                           ListTileCustom(
-                            title: 'Population',
+                            title: 'Population :',
                             subtitle:
                                 '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
                           ),
 
                           ListTileCustom(
-                            title: 'Area',
+                            title: 'Area :',
                             subtitle: '${countryInfo[index].area.round()} km2',
                           ),
 
                           ListTileCustom(
                             title: 'Region',
                             subtitle: countryInfo[index].region,
+                          ),
+                          ListTileCustom(
+                            title: "Borders with : ",
+                            subtitle: countryInfo[index].borders.join('\n'),
                           ),
                         ],
                       ),
