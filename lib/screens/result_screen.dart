@@ -26,25 +26,28 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> getCountryInfo() async {
     try {
-      final List<dynamic> countiesData = await request(
+      final List<dynamic> countriesData = await request(
         'https://restcountries.com/v3.1/name/$countryName',
       );
-      final borders =
-          countiesData.expand((country) => country['borders']).toList();
-
-      final bordersFutures =
-          borders.map((border) {
-            return request('https://restcountries.com/v3.1/alpha/$border');
-          }).toList();
-
-      final bordersData = await Future.wait(bordersFutures);
-
-      countiesData[0]['borders'] =
-          bordersData.map((border) => border[0]['name']['common']).toList();
+      for (var i = 0; i < countriesData.length; i++) {
+        if (countriesData[i]['borders'] == null) {
+          countriesData[i]['borders'] = ['No Borders with other countries'];
+        } else {
+          final borders =
+              countriesData.expand((country) => country['borders']).toList();
+          final bordersFutures =
+              borders.map((border) {
+                return request('https://restcountries.com/v3.1/alpha/$border');
+              }).toList();
+          final bordersData = await Future.wait(bordersFutures);
+          countriesData[i]['borders'] =
+              bordersData.map((border) => border[i]['name']['common']).toList();
+        }
+      }
 
       setState(() {
         countryInfo =
-            countiesData.map((e) => CountryInfoList.fromJson(e)).toList();
+            countriesData.map((e) => CountryInfoList.fromJson(e)).toList();
         isFetching = false;
       });
     } catch (error) {
@@ -137,7 +140,7 @@ class _ResultScreenState extends State<ResultScreen> {
                           ),
                           ListTileCustom(
                             title: "Borders with : ",
-                            subtitle: countryInfo[index].borders.join('\n'),
+                            subtitle: countryInfo[index].borders!.join('\n'),
                           ),
                         ],
                       ),

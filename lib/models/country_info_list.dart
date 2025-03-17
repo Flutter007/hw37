@@ -4,7 +4,7 @@ class CountryInfoList {
   final String region;
   final double area;
   final double population;
-  final List<String> borders;
+  final List<String>? borders;
 
   CountryInfoList({
     required this.name,
