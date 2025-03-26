@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hw37/helpers/request.dart';
 import 'package:hw37/models/country_info_list.dart';
-import '../widgets/list_tile_custom.dart';
+import 'package:hw37/models/country_short.dart';
+import '../widgets/list_tile_photo.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key});
@@ -15,6 +16,7 @@ class _ResultScreenState extends State<ResultScreen> {
   var countryController = TextEditingController();
   String? countryName;
   List<CountryInfoList> countryInfo = [];
+  List<CountryShort> countries = [];
   String? wrongEntry;
   bool isFetching = false;
   String? errorTxt;
@@ -22,6 +24,18 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    getCountries();
+  }
+
+  void getCountries() async {
+    final List<dynamic> countriesDataShort = await request(
+      'https://restcountries.com/v3.1/all?fields=name,flags',
+    );
+    setState(() {
+      countries =
+          countriesDataShort.map((e) => CountryShort.fromJson(e)).toList();
+      isFetching = false;
+    });
   }
 
   Future<void> getCountryInfo() async {
@@ -65,107 +79,64 @@ class _ResultScreenState extends State<ResultScreen> {
     if (isFetching) {
       content = Center(child: CircularProgressIndicator());
     } else {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            child: TextField(
-              onChanged: (value) {
-                setState(() {
-                  errorTxt = null;
-                  countryInfo = [];
-                });
-              },
-              onTap:
-                  () => setState(() {
-                    countryController.text = '';
-                  }),
-              controller: countryController,
-              decoration: InputDecoration(
-                label: Text("Enter your country!"),
-                border: OutlineInputBorder(),
+      content =
+          content = Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      errorTxt = null;
+                    });
+                  },
+                  onTap:
+                      () => setState(() {
+                        countryController.text = '';
+                      }),
+                  controller: countryController,
+                  decoration: InputDecoration(
+                    label: Text("Enter your country!"),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                countryName = countryController.text;
-                isFetching = true;
-              });
-              getCountryInfo();
-            },
-            child: Text(
-              "Find",
-              style: GoogleFonts.alef(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    countryName = countryController.text;
+                    isFetching = true;
+                  });
+                  getCountryInfo();
+                },
+                child: Text(
+                  "Find",
+                  style: GoogleFonts.alef(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(height: 20),
-          errorTxt == null
-              ? Expanded(
+              Expanded(
                 child: ListView.builder(
                   padding: EdgeInsets.all(10),
                   itemBuilder:
                       (ctx, index) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ListTileCustom(
-                            title: 'Country: ',
-                            subtitle: countryInfo[index].name,
-                          ),
-                          ListTileCustom(
-                            title: 'Capital :',
-                            subtitle: countryInfo[index].capital[0],
-                          ),
-
-                          ListTileCustom(
-                            title: 'Population :',
-                            subtitle:
-                                '${(countryInfo[index].population / 1000000).toStringAsFixed(3)} mln',
-                          ),
-
-                          ListTileCustom(
-                            title: 'Area :',
-                            subtitle: '${countryInfo[index].area.round()} km2',
-                          ),
-
-                          ListTileCustom(
-                            title: 'Region',
-                            subtitle: countryInfo[index].region,
-                          ),
-                          ListTileCustom(
-                            title: "Borders with : ",
-                            subtitle: countryInfo[index].borders!.join('\n'),
+                          ListTilePhoto(
+                            title: countries[index].name,
+                            subtitle: countries[index].flag,
                           ),
                         ],
                       ),
-                  itemCount: countryInfo.length,
-                ),
-              )
-              : Center(
-                child: Row(
-                  children: [
-                    Icon(Icons.error, size: 30, color: theme.colorScheme.error),
-                    Expanded(
-                      child: Text(
-                        errorTxt!,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                  itemCount: countries.length,
                 ),
               ),
-        ],
-      );
+              SizedBox(height: 20),
+            ],
+          );
     }
     return content;
   }
