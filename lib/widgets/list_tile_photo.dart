@@ -13,10 +13,11 @@ class ListTilePhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleLarge = Theme.of(context).textTheme.titleLarge!;
+    final theme = Theme.of(context);
+    final titleLarge = theme.textTheme.titleLarge!;
 
     return Card(
-      color: Colors.green.shade200,
+      color: theme.colorScheme.inversePrimary,
       child: ListTile(
         contentPadding: EdgeInsets.all(10),
         onTap: onTap,

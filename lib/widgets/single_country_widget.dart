@@ -18,6 +18,7 @@ class SingleCountryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget content;
+    final theme = Theme.of(context);
 
     if (isFetching) {
       content = Center(child: CircularProgressIndicator());
@@ -31,37 +32,25 @@ class SingleCountryWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              ListTileCustom(title: 'Country: ', subtitle: localCountry.name),
               ListTileCustom(
-                onTap: () {},
-                title: 'Country: ',
-                subtitle: localCountry.name,
-              ),
-              ListTileCustom(
-                onTap: () {},
                 title: 'Capital :',
                 subtitle: localCountry.capital[0],
               ),
 
               ListTileCustom(
-                onTap: () {},
                 title: 'Population :',
                 subtitle:
                     '${(localCountry.population / 1000000).toStringAsFixed(3)} mln',
               ),
 
               ListTileCustom(
-                onTap: () {},
                 title: 'Area :',
                 subtitle: '${localCountry.area.round()} km2',
               ),
 
+              ListTileCustom(title: 'Region', subtitle: localCountry.region),
               ListTileCustom(
-                onTap: () {},
-                title: 'Region',
-                subtitle: localCountry.region,
-              ),
-              ListTileCustom(
-                onTap: () {},
                 title: "Borders with : ",
                 subtitle: localCountry.borders!.join('\n'),
               ),
@@ -70,6 +59,16 @@ class SingleCountryWidget extends StatelessWidget {
         ),
       );
     }
-    return Scaffold(appBar: AppBar(title: Text('Info')), body: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: theme.colorScheme.inversePrimary,
+        title: Text(
+          'Data about country!',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: content,
+    );
   }
 }
