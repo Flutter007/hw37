@@ -12,9 +12,11 @@ class ListTileCustom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleLarge = Theme.of(context).textTheme.titleLarge!;
-    final titleMedium = Theme.of(context).textTheme.titleMedium!;
+    final titleLarge = Theme.of(context).textTheme.titleMedium!;
+    final titleMedium = Theme.of(context).textTheme.titleLarge!;
     return ListTile(
+      shape: Border.symmetric(horizontal: BorderSide(width: 0.5)),
+      contentPadding: EdgeInsets.all(4),
       title: Text(title, style: titleLarge),
       subtitle: Text(subtitle, style: titleMedium),
     );

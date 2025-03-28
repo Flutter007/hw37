@@ -17,7 +17,6 @@ class _SingleCountryScreenState extends State<SingleCountryScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     countryInfo = getCountryInfo();
   }

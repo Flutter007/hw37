@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hw37/screens/result_screen.dart';
+import 'package:hw37/screens/start_countries_screen.dart';
 
 class Hw37 extends StatefulWidget {
   const Hw37({super.key});
